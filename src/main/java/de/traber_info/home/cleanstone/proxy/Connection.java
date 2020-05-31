@@ -89,7 +89,7 @@ public class Connection implements Runnable {
                     LOG.info("Starting proxy {}:{} <-> {}:{}...",
                             clientSocket.getInetAddress().getHostAddress(),
                             clientSocket.getPort(),
-                            serverConnection.getInetAddress().getHostName(),
+                            serverConnection.getInetAddress().getHostAddress(),
                             serverConnection.getPort()
                     );
 
