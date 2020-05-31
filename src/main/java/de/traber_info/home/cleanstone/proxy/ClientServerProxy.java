@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /**
  * Proxy to exchange data between the client and the backend server.
@@ -52,6 +54,8 @@ public class ClientServerProxy implements Runnable {
             while (-1 != (bytesRead = inputStream.read(reply))) {
                 outputStream.write(reply, 0, bytesRead);
             }
+        } catch (SocketException ignore) {
+            // Do nothing
         } catch (Exception ex) {
             LOG.error("An unexpected error occurred...", ex);
         } finally {
