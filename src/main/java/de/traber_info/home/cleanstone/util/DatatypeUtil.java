@@ -1,5 +1,8 @@
 package de.traber_info.home.cleanstone.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -9,6 +12,9 @@ import java.util.Arrays;
  * @author Oliver Traber
  */
 public class DatatypeUtil {
+
+    /** SLF4J logger for usage in this class */
+    private static final Logger LOG = LoggerFactory.getLogger(DatatypeUtil.class.getName());
 
     /** Int holding the amount of bytes read by the last read function call. */
     private int bytesRead = 0;
@@ -31,7 +37,8 @@ public class DatatypeUtil {
 
             numRead++;
             if (numRead > 5) {
-                throw new RuntimeException("VarInt is too big");
+                LOG.error("VarInt is too big!");
+                return -1;
             }
         } while ((read & 0b10000000) != 0);
 

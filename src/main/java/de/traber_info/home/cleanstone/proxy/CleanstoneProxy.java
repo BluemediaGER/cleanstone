@@ -3,6 +3,7 @@ package de.traber_info.home.cleanstone.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -38,8 +39,8 @@ public class CleanstoneProxy {
                 Socket socket = serverSocket.accept();
                 startThread(new Connection(socket));
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException ex) {
+            LOG.error("An unexpected error occurred...", ex);
         }
     }
 
