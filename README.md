@@ -1,4 +1,4 @@
-# CleanStone
+# Cleanstone
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/344a87fb7df7408f991b574f147d9636)](https://www.codacy.com/manual/BluemediaGER/cleanstone?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BluemediaGER/cleanstone&amp;utm_campaign=Badge_Grade)  
 
