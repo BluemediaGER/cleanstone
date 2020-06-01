@@ -62,10 +62,16 @@ public class Connection implements Runnable {
             if (packet.getPacketId() == 0) {
                 // Parse protocol version
                 int protocolVersion = datatypeUtil.readVarInt(packet.getUnreadData(), 0);
+
+                // Parse wantedServerAddress
                 String wantedServerAddress = datatypeUtil.readString(
                         packet.getUnreadData(),
                         datatypeUtil.getBytesRead()
                 );
+                // Remove FML flag from wantedServerAddress if the connecting client is using Minecraft Forge
+                if (wantedServerAddress.contains("\u0000FML\u0000")) {
+                    wantedServerAddress = wantedServerAddress.replace("\u0000FML\u0000", "");
+                }
                 LOG.info("Client {} connecting with protocol version {}. Wanted server: {}",
                         clientSocket.getInetAddress().getHostAddress(),
                         protocolVersion,
