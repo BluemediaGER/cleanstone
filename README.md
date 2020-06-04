@@ -52,10 +52,6 @@ How many players and active connections Cleanstone can handle however depends on
 - [Jackson-Databind](https://github.com/FasterXML/jackson-databind) - FasterXML Jackson object mapper
 - [LOGBack](http://logback.qos.ch/) - Java Logging Framework
 
-## Authors  
-  
-- [Oliver Traber](https://github.com/BluemediaGER)  - *Principal work*
-
 ## License  
   
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
