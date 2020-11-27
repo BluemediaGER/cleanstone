@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.regex.Pattern;
 
 /**
  * Thread class for handling client connections.
@@ -28,6 +29,9 @@ public class Connection implements Runnable {
 
     /** Socket for communication with and from the backend server */
     private Socket serverConnection = null;
+
+    /** Regex to remove Forge Modloader address appendix */
+    private final static Pattern fmlPattern = Pattern.compile("\u0000FML.*\u0000");
 
     /**
      * Create a new instance to handle an incoming client connection.
@@ -68,10 +72,9 @@ public class Connection implements Runnable {
                         packet.getUnreadData(),
                         datatypeUtil.getBytesRead()
                 );
-                // Remove FML flag from wantedServerAddress if the connecting client is using Minecraft Forge
-                if (wantedServerAddress.contains("\u0000FML\u0000")) {
-                    wantedServerAddress = wantedServerAddress.replace("\u0000FML\u0000", "");
-                }
+                // Remove FML appendix from wantedServerAddress if the connecting client is using Minecraft Forge
+                wantedServerAddress = fmlPattern.matcher(wantedServerAddress).replaceAll("");
+
                 LOG.info("Client {} connecting with protocol version {}. Wanted server: {}",
                         clientSocket.getInetAddress().getHostAddress(),
                         protocolVersion,
