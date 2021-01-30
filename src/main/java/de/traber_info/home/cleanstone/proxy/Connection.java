@@ -1,13 +1,17 @@
 package de.traber_info.home.cleanstone.proxy;
 
 import de.traber_info.home.cleanstone.CleanStone;
+import de.traber_info.home.cleanstone.model.config.ConfigFile;
 import de.traber_info.home.cleanstone.model.object.Packet;
+import de.traber_info.home.cleanstone.util.ConfigUtil;
 import de.traber_info.home.cleanstone.util.DatatypeUtil;
+import de.traber_info.home.cleanstone.util.ProxyProtoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.regex.Pattern;
 
@@ -48,10 +52,7 @@ public class Connection implements Runnable {
      */
     @Override
     public void run() {
-        LOG.info("Accepted new connection from {}:{}",
-                clientSocket.getInetAddress().getHostAddress(),
-                clientSocket.getPort()
-        );
+        ConfigFile.ProxyProtocolSettings proxyProtocolSettings = ConfigUtil.getConfig().getProxyProtocolSettings();
 
         try {
             // Read first packet
@@ -61,7 +62,42 @@ public class Connection implements Runnable {
             byte[] result = baos.toByteArray();
             baos.close();
 
-            Packet packet = new Packet(result);
+            boolean hasProxyProtocolHeader = false;
+            String clientIP;
+            Packet packet;
+            if (ProxyProtoUtil.hasProxyProtocolHeader(result)) {
+                if (!proxyProtocolSettings.isEnabled() || !proxyProtocolSettings.passThroughEnabled()) {
+                    clientSocket.close();
+                    LOG.warn("Aborted connection from {}:{}. " +
+                            "The received packet contains a PROXY protocol v2 header, " +
+                            "but PROXY protocol pass through is disabled.",
+                            clientSocket.getInetAddress().getHostAddress(),
+                            clientSocket.getPort()
+                    );
+                    return;
+                }
+                hasProxyProtocolHeader = true;
+                ProxyProtoUtil.ProxyProtoHeader proxyHeader = ProxyProtoUtil.decode(result, true);
+                clientIP = proxyHeader.sourceAddress.getHostAddress();
+                LOG.info("Accepted new connection from {}:{} via proxy {}",
+                        clientIP,
+                        proxyHeader.sourcePort,
+                        clientSocket.getInetAddress().getHostAddress()
+                );
+                int headerLength = ProxyProtoUtil.getHeaderLength(result);
+                int payloadLength = result.length - headerLength;
+                byte[] mcPacket = new byte[payloadLength];
+                System.arraycopy(result, headerLength, mcPacket, 0, payloadLength);
+                packet = new Packet(mcPacket);
+            } else {
+                clientIP = clientSocket.getInetAddress().getHostAddress();
+                LOG.info("Accepted new connection from {}:{}",
+                        clientIP,
+                        clientSocket.getPort()
+                );
+                packet = new Packet(result);
+            }
+
             // Check if packet is an handshake packet
             if (packet.getPacketId() == 0) {
                 // Parse protocol version
@@ -76,7 +112,7 @@ public class Connection implements Runnable {
                 wantedServerAddress = fmlPattern.matcher(wantedServerAddress).replaceAll("");
 
                 LOG.info("Client {} connecting with protocol version {}. Wanted server: {}",
-                        clientSocket.getInetAddress().getHostAddress(),
+                        clientIP,
                         protocolVersion,
                         wantedServerAddress
                 );
@@ -95,18 +131,46 @@ public class Connection implements Runnable {
                             CleanStone.getBackendServerMappings().get(wantedServerAddress).getBackendServerPort()
                     );
 
-                    LOG.info("Starting proxy {}:{} <-> {}:{}...",
-                            clientSocket.getInetAddress().getHostAddress(),
-                            clientSocket.getPort(),
-                            serverConnection.getInetAddress().getHostAddress(),
-                            serverConnection.getPort()
-                    );
+                    if (hasProxyProtocolHeader) {
+                        LOG.info("Starting proxy {}:{} <-> {}:{} on behalf of client {}...",
+                                clientSocket.getInetAddress().getHostAddress(),
+                                clientSocket.getPort(),
+                                serverConnection.getInetAddress().getHostAddress(),
+                                serverConnection.getPort(),
+                                clientIP
+                        );
+                    } else {
+                        LOG.info("Starting proxy {}:{} <-> {}:{}...",
+                                clientSocket.getInetAddress().getHostAddress(),
+                                clientSocket.getPort(),
+                                serverConnection.getInetAddress().getHostAddress(),
+                                serverConnection.getPort()
+                        );
+                    }
 
                     // Start proxy threads to exchange data between the client and the backend server
                     new Thread(new ClientServerProxy(clientSocket, serverConnection)).start();
                     new Thread(new ClientServerProxy(serverConnection, clientSocket)).start();
-                    // Write handshake packet unchanged to the backend server's OutputStream
-                    serverConnection.getOutputStream().write(result);
+
+                    if (proxyProtocolSettings.isEnabled() && !hasProxyProtocolHeader) {
+                        // Add PROXY protocol header if PROXY protocol support is enabled
+                        // and the packet doesn't contain a header yet.
+                        byte[] header = ProxyProtoUtil.encode(
+                                ProxyProtoUtil.TransportFam.TCP,
+                                clientSocket.getInetAddress(),
+                                clientSocket.getPort(),
+                                clientSocket.getLocalAddress(),
+                                clientSocket.getLocalPort()
+                        );
+                        byte[] combined = new byte[header.length + result.length];
+                        System.arraycopy(header, 0, combined, 0, header.length);
+                        System.arraycopy(result, 0, combined, header.length, result.length);
+                        serverConnection.getOutputStream().write(combined);
+                    } else {
+                        // Write handshake packet unchanged to the backend server's OutputStream
+                        serverConnection.getOutputStream().write(result);
+                    }
+
                     new Thread(() -> {
                         while (true) {
                             if (clientSocket.isClosed()) {
@@ -115,6 +179,18 @@ public class Connection implements Runnable {
                                         clientSocket.getPort()
                                 );
                                 closeServerConnection();
+                                break;
+                            }
+                            if (serverConnection.isClosed()) {
+                                LOG.info("Server connection for client ({}:{}) closed. Closing connection to client...",
+                                        clientSocket.getInetAddress().getHostAddress(),
+                                        clientSocket.getPort()
+                                );
+                                try {
+                                    clientSocket.close();
+                                } catch (IOException e) {
+                                    // Do nothing
+                                }
                                 break;
                             }
 
@@ -127,11 +203,16 @@ public class Connection implements Runnable {
                     }).start();
                 }
             } else {
-                LOG.error("Packet is not a handshake. Closing client socket.");
+                LOG.error("Packet does not contain a handshake. Closing client socket.");
                 clientSocket.close();
             }
         } catch (IOException ex) {
             LOG.error("An unexpected error occurred...", ex);
+            try {
+                clientSocket.close();
+            } catch (IOException ex1) {
+                // Do nothing
+            }
         }
     }
 
