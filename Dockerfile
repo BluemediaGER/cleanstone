@@ -1,5 +1,5 @@
 # Build stage
-FROM debian:latest AS build-stage
+FROM maven:3.6.0-jdk-11-slim AS build-stage
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -15,7 +15,7 @@ WORKDIR /usr/src/cleanstone
 RUN mvn clean package
 
 # Prod stage
-FROM debian:latest
+FROM openjdk:11-jre-slim
 
 LABEL maintainer="hi@bluemedia.dev"
 
