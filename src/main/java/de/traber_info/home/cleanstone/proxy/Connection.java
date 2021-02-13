@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.regex.Pattern;
 
 /**
@@ -206,6 +206,8 @@ public class Connection implements Runnable {
                 LOG.error("Packet does not contain a handshake. Closing client socket.");
                 clientSocket.close();
             }
+        } catch (SocketException ex) {
+            // Do nothing
         } catch (IOException ex) {
             LOG.error("An unexpected error occurred...", ex);
             try {
