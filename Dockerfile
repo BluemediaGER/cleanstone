@@ -37,4 +37,4 @@ RUN useradd --system --shell /usr/sbin/nologin cleanstone
 RUN chown -R cleanstone:cleanstone /opt/cleanstone
 
 USER cleanstone
-CMD ["java", "-jar", "/opt/ldap2azure/cleanstone.jar"]
+CMD ["java", "-jar", "/opt/cleanstone/cleanstone.jar"]
