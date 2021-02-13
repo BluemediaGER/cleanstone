@@ -5,7 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt update -y && \
     apt upgrade -y && \
-    apt install -y openjdk-11-jdk maven && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -23,7 +22,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt update -y && \
     apt upgrade -y && \
-    apt install openjdk-11-jre -y && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir /conf
