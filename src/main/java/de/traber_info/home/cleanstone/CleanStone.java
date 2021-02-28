@@ -31,6 +31,14 @@ public class CleanStone {
             backendServerMappings.put(backendServerMapping.getMappingDomain(), backendServerMapping);
         }
 
+        // Warn if PROXY protocol pass-through is enabled
+        if (ConfigUtil.getConfig().getProxyProtocolSettings().passThroughEnabled()) {
+            LOG.warn("PROXY protocol v2 pass-through is enabled. " +
+                    "Make sure that cleanstone is properly firewalled and only receives data from it's upstream. " +
+                    "Otherwise, players might be able to spoof their IP address."
+            );
+        }
+
         LOG.info("Starting proxy server on port {}", ConfigUtil.getConfig().getListenPort());
         CleanstoneProxy cleanstoneProxy = new CleanstoneProxy(ConfigUtil.getConfig().getListenPort());
         cleanstoneProxy.listen();
