@@ -3,11 +3,6 @@ FROM maven:3.6.0-jdk-11-slim AS build-stage
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update -y && \
-    apt upgrade -y && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 COPY ./src /usr/src/cleanstone/src
 COPY ./pom.xml /usr/src/cleanstone/pom.xml
 WORKDIR /usr/src/cleanstone
