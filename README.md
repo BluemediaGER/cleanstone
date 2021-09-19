@@ -6,6 +6,13 @@ Cleanstone is a fast and easy to use reverse proxy for Minecraft.
 It can be used to make multiple Minecraft servers available on the same port and IP address. Based on the domain name sent by the client in the handshake, Cleanstone decides which of the available backend servers will receive the client's traffic.  
 The subsequent traffic is then transparently forwarded by Cleanstone to the corresponding backend server without the player noticing.
 
+## Compiling
+
+This project uses Maven as its build system. To compile a jar file including all dependencies, you can run the following command:
+```bash
+mvn clean package
+```
+
 ## Configuration
 
 The configuration of Cleanstone is very simple. It is a single configuration file in the widely used JSON format.  
@@ -58,7 +65,7 @@ Cleanstone supports the PROXY protocol v2, which allows sending the real IP addr
     "passThrough": true
   },
   "backendServerMappings": [
-      ...
+      "..."
   ]
 }
 ```
