@@ -46,6 +46,30 @@ Explanation of the configuration keys:
 You can theoretically configure as many backend servers as you like.  
 How many players and active connections Cleanstone can handle however depends on the performance of your computer or server.
 
+### PROXY protovol v2 support
+
+Cleanstone supports the PROXY protocol v2, which allows sending the real IP address of a player to the backend server. Cleanstone can either provide the necessary information itself or receive and process it from an upstream proxy such as Cloudflare. The configuration is described below.
+
+```json
+{
+  "listenPort": 25565,
+  "proxyProtocol": {
+    "enable": true,
+    "passThrough": true
+  },
+  "backendServerMappings": [
+      ...
+  ]
+}
+```
+
+Explanation of the PROXY protocol v2 configuration keys:
+
+| Key                  | Description                                                                                                                         |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| enable               | Enable PROXY protocol v2 support. If true cleanstone will process and add an PROXY protocol header for new connections.             |
+| passThrough          | (Optional) Process PROXY protocol headers from an upstream proxy (e.g. Cloudflare) and pass the original header to the backend.     |
+
 ## Built With  
   
 - [Maven](https://maven.apache.org/) - Dependency Management 
