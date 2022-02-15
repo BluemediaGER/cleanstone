@@ -13,11 +13,15 @@ public class ConfigFile {
 
     /** Port on which the proxy should be listening */
     @JsonProperty("listenPort")
-    private int listenPort;
+    private int listenPort = 25565;
 
     /** List of available backend servers and what address should be mapped to them */
     @JsonProperty("backendServerMappings")
     private ArrayList<BackendServerMapping> backendServerMappings;
+
+    /** Config object for setting PROXY protocol settings */
+    @JsonProperty("proxyProtocol")
+    private ProxyProtocolSettings proxyProtocolSettings = new ProxyProtocolSettings();
 
     /** Private constructor for instantiation by Jackson */
     private ConfigFile() {}
@@ -36,5 +40,43 @@ public class ConfigFile {
      */
     public ArrayList<BackendServerMapping> getBackendServerMappings() {
         return backendServerMappings;
+    }
+
+    /**
+     * Get the PROXY protocol config object.
+     * @return PROXY protocol config object.
+     */
+    public ProxyProtocolSettings getProxyProtocolSettings() {
+        return proxyProtocolSettings;
+    }
+
+    /**
+     * Class to hold information about PROXY protocol support options.
+     */
+    public class ProxyProtocolSettings {
+
+        /** Enable PROXY protocol support */
+        @JsonProperty("enable")
+        private boolean enabled = false;
+
+        /** Enable PROXY protocol pass through */
+        @JsonProperty("passThrough")
+        private boolean passThrough = false;
+
+        /**
+         * Check if PROXY protocol support is enabled.
+         * @return true if PROXY protocol support is enabled, otherwise false.
+         */
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Check if PROXY protocol pass through is enabled.
+         * @return true if PROXY protocol pass through is enabled, otherwise false.
+         */
+        public boolean passThroughEnabled() {
+            return passThrough;
+        }
     }
 }
