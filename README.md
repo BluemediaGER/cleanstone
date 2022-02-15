@@ -2,6 +2,10 @@
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/344a87fb7df7408f991b574f147d9636)](https://www.codacy.com/manual/BluemediaGER/cleanstone?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BluemediaGER/cleanstone&amp;utm_campaign=Badge_Grade)  
 
+| :zap: NOTICE               |
+|:---------------------------|
+| This project was created as an experiment to test how well I can implement "low level" network protocols in Java. It is not really designed for productive use. Unfortunately I don't have the time for so many projects, so I can' t maintain this project any further. However, feel free to fork it if you are interested in it! |
+
 Cleanstone is a fast and easy to use reverse proxy for Minecraft.  
 It can be used to make multiple Minecraft servers available on the same port and IP address. Based on the domain name sent by the client in the handshake, Cleanstone decides which of the available backend servers will receive the client's traffic.  
 The subsequent traffic is then transparently forwarded by Cleanstone to the corresponding backend server without the player noticing.
